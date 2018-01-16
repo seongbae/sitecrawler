@@ -1,0 +1,42 @@
+{
+    "name": "seongbae/sitecrawler",
+    "description": "A Laravel package for getting keyword positions from Google",
+    "keywords": ["laravel", "google", "keywords", "search", "console", "rank"],
+    "version": "1.0.0",
+    "authors": [
+        {
+            "name": "Seong Bae",
+            "email": "seong@lnidigital.com"
+        }
+    ],
+    "license": "MIT",
+    "require": {
+        "php": ">=5.6.4",
+        "illuminate/support": "~5.1",
+        "fabpot/goutte": "^3.2@dev",
+        "mews/purifier": "dev-master"
+    },
+    
+    "require-dev": {
+    },
+    "autoload": {
+        "psr-4": {
+            "seongbae\\SiteCrawler\\": "src/"
+        },
+        "files": [
+        ]
+    },
+    "extra": {
+        "component": "package",
+        "frameworks": ["Laravel 5.5"],
+        "laravel": {
+            "providers": [
+                "seongbae\\SiteCrawler\\SiteCrawlerServiceProvider"
+            ]            
+        },
+        "aliases": {
+            "Crawl": "seongbae\\SiteCrawler\\SiteCrawlerFacade"
+        }
+    },
+    "minimum-stability": "dev"
+}
