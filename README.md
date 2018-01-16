@@ -71,15 +71,25 @@ When migration is run, the package creates a table called "crawled_pages".  It's
 ```
 
 url - url of the page being crawled
+
 scheme - protocol - "http://"" or "https://""
+
 host - hostname of page being crawled.  i.e. "www.lnidigital.com"
+
 path - path i.e. "/about"
+
 title - title tag
+
 description - description meta tag
+
 html - entire HTML of page after being cleaned up by the Purifier library
+
 status - status of page crawled - 200, 404, 500, etc
+
 created_at - created time
+
 updated_at - updated time
+
 
 Changelog
 ---------
