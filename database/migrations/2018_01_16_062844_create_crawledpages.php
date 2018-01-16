@@ -19,9 +19,9 @@ class CreateCrawledpages extends Migration
             $table->string('scheme');
             $table->string('host');
             $table->string('path');
-            $table->string('title');
-            $table->string('description');
-            $table->longText('html');
+            $table->string('title')->nullable();
+            $table->text('description')->nullable();
+            $table->mediumText('html')->nullable();
             $table->string('status'); // 1 = good, 2 = 404, 3 = 500, etc.
             $table->timestamps();
         });

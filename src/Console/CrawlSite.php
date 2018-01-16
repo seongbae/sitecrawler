@@ -13,7 +13,7 @@ class CrawlSite extends Command
      *
      * @var string
      */
-    protected $signature = 'crawl {url}';
+    protected $signature = 'crawl {url} {--nofollow}';
 
     /**
      * The console command description.
@@ -35,18 +35,13 @@ class CrawlSite extends Command
      */
     public function handle()
     {
-        $crawler = new SiteCrawler();
+        $crawler = new SiteCrawler(Config::get('sitecrawler'));
         $url = $this->argument('url');
 
         $match = "/^(http|https):\/\//";
         if (!preg_match($match, $url))
             $url = "http://".$url;
         
-        $crawler->crawl($url);
-
-        //$position = $fetcher->getPosition($this->argument('url'), $this->argument('keyword'), $this->option('nocache')); //$fetcher->fetchAll();
-        //$crawler->crawl('www.seongbae.com');
-
-        //$this->info("hello world");
+        $crawler->crawl($url, $this->option('nofollow'));
     }
 }

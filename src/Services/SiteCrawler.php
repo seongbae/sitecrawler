@@ -19,14 +19,14 @@ class SiteCrawler
     protected $scheme;
     protected $host;
 
-    public function __construct()
+    public function __construct($config)
     {
-        //$this->config = $config;
+        $this->config = $config;
         $this->client = new Client();
-        $this->client->setHeader('user-agent', "Mozilla/5.0 (Windows NT 5.1) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/41.0.2272.101 Safari/537.36");
+        $this->client->setHeader('user-agent', $this->config['user_agent']);
     }
 
-    public function crawl($url) 
+    public function crawl($url, $nofollow=false) 
     {
     	$parsedURL = parse_url($url);
 
@@ -57,19 +57,9 @@ class SiteCrawler
 	        $title = "";
 	        $description = "";
 
-	        //print('1');
 	        $crawler = $this->client->request('GET', $url);
-	        //print('2');
-	        //$uri = $this->client->getRequest()->getUri();
-	        //print('3');
-	        $title = $crawler->filterXpath('//title')->text();
-	        //print('4');
-	        // try {
-	        // 	$description = $crawler->filterXpath('//meta[@name="description"]')->attr('content');
-	        // } catch(Exception $e) { // I guess its InvalidArgumentException in this case
-			    
-			//}
-			$metaitems = $crawler->filter('meta')->each(function($node) {
+	       	$title = $crawler->filterXpath('//title')->text();
+	       	$metaitems = $crawler->filter('meta')->each(function($node) {
 			    return [
 			        'name' => $node->attr('name'),
 			        'content' => $node->attr('content'),
@@ -93,44 +83,35 @@ class SiteCrawler
 	        $page->path = isset($parsedURL['path']) ? $parsedURL['path'] : '';
 	        $page->title = $title;
 	        $page->description = $description;
-	        $page->html = Purifier::clean($crawler->html());
+	        $page->html = clean($crawler->html());
 	        $page->status = $this->client->getResponse()->getStatus();
 	        $page->save();
 
-	        //print('description:'.$description);
-	        //print("uri=".$uri."\n");
-	        //print("title=".$title."\n");
-	        //print("description=".$description."\n");
-
-	        // Store information begin
-
-	        // Store information end
-
 	        $this->crawledUrls[] = $url;
 
-	        $links = $crawler->filter('a')->each(function ($node) {
-			            $href  = $node->attr('href');
-					    $title = $node->attr('title');
-					    $text  = $node->text();
+	        if (!$nofollow) {
+	        	$links = $crawler->filter('a')->each(function ($node) {
+				            $href  = $node->attr('href');
+						    $title = $node->attr('title');
+						    $text  = $node->text();
 
-					    return compact('href', 'title', 'text');
-			        });
+						    return compact('href', 'title', 'text');
+				        });
 
-	        //print_r($links);
+		        foreach ($links as $link) {
+		        	$linkurl = $link['href'];
+		        	sleep(1);
 
-	        foreach ($links as $link) {
-	        	$linkurl = $link['href'];
-	        	//print($linkurl."\n");
-	        	sleep(1);
+		        	if (preg_match('/^\//',$linkurl)) // relative link found
+		        		$linkurl = $this->scheme .$this->host.$linkurl;
 
-	        	if (preg_match('/^\//',$linkurl)) // relative link found
-	        		$linkurl = $this->scheme .$this->host.$linkurl;
-
-	        	if (!in_array($linkurl, $this->crawledUrls)) {
-	        		print("new link found: ".$linkurl."\n");
-	        		$this->crawl($linkurl);
-	        	}
+		        	if (!in_array($linkurl, $this->crawledUrls)) {
+		        		print("new link found: ".$linkurl."\n");
+		        		$this->crawl($linkurl, $nofollow);
+		        	}
+		        }
 	        }
+	        
 	    } else {
 	    	print($url. " is already crawled or skipping...\n");
 	    }

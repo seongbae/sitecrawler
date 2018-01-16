@@ -19,14 +19,12 @@ class SiteCrawlerServiceProvider extends ServiceProvider
             return new SiteCrawler;
         });
 
-        // publish config file
-        // $configPath = __DIR__ . '/../config/keywordrank.php';
-        // $this->mergeConfigFrom($configPath, 'keywordrank');
-        // $this->publishes([
-        //      $configPath => config_path('keywordrank.php')
-        // ], 'config');
+        $configPath = __DIR__ . '/../config/sitecrawler.php';
+        $this->mergeConfigFrom($configPath, 'sitecrawler');
+        $this->publishes([
+             $configPath => config_path('sitecrawler.php')
+        ], 'config');
 
-        // Register fetch:rank command
         $this->initCommand('crawlsite', CrawlSite::class);
     }
 
