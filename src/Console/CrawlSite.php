@@ -38,10 +38,6 @@ class CrawlSite extends Command
         $crawler = new SiteCrawler(Config::get('sitecrawler'));
         $url = $this->argument('url');
 
-        $match = "/^(http|https):\/\//";
-        if (!preg_match($match, $url))
-            $url = "http://".$url;
-        
         $crawler->crawl($url, $this->option('nofollow'));
     }
 }

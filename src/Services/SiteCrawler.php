@@ -18,6 +18,7 @@ class SiteCrawler
     protected $skipUrls = ['/'];
     protected $scheme;
     protected $host;
+    protected $originalURL;
 
     public function __construct($config)
     {
@@ -26,9 +27,16 @@ class SiteCrawler
         $this->client->setHeader('user-agent', $this->config['user_agent']);
     }
 
-    public function crawl($url, $nofollow=false) 
+    public function crawl($url, $nofollow=false)
     {
-    	$parsedURL = parse_url($url);
+    	$match = "/^(http|https):\/\//";
+
+        if (!preg_match($match, $url))
+            $url = "http://".$url;
+
+        $this->originalURL = $url;
+
+        $parsedURL = parse_url($url);
 
     	if (!isset($this->host)) {
     		$this->scheme = isset($parsedURL['scheme']) ? $parsedURL['scheme'] . '://' : ''; 
@@ -37,16 +45,27 @@ class SiteCrawler
     		print('scheme='.$this->scheme."\n");
     		print('host='.$this->host."\n");
     	}
+        
+        $this->crawlURL($url, $nofollow);
+    }	
 
+    private function crawlURL($url, $nofollow=false) 
+    {
+    	
+    	$parsedURL = parse_url($url);
     	$path = isset($parsedURL['path']) ? $parsedURL['path'] : ''; 
 
+    	// Skip on page links
     	if (preg_match('/^#/', $url)) {
     		return;
     	}
 
+    	// Skip any blacklisted URLs
     	if (in_array($url, $this->skipUrls)) {
     		return;
-    	} //else if ($url == "/" || in_array($url)
+    	} 
+
+    	// if url already exists, what to do?
 
     	if (!in_array($url, $this->crawledUrls) && 
     		!in_array($url.'/', $this->crawledUrls) &&
@@ -74,8 +93,6 @@ class SiteCrawler
 				}
 			}
 	        
-	        
-
 	        $page = new CrawledPage();
 	        $page->url = $url;
 	        $page->scheme = $this->scheme;
@@ -105,7 +122,8 @@ class SiteCrawler
 		        	if (preg_match('/^\//',$linkurl)) // relative link found
 		        		$linkurl = $this->scheme .$this->host.$linkurl;
 
-		        	if (!in_array($linkurl, $this->crawledUrls)) {
+		        	if (!in_array($linkurl, $this->crawledUrls) &&
+		        		strpos($linkurl, $this->host) !== false) {
 		        		print("new link found: ".$linkurl."\n");
 		        		$this->crawl($linkurl, $nofollow);
 		        	}

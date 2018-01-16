@@ -15,7 +15,7 @@ class CreateCrawledpages extends Migration
     {
         Schema::create('crawled_pages', function (Blueprint $table) {
             $table->increments('id');
-            $table->string('url');
+            $table->string('url')->unique();
             $table->string('scheme');
             $table->string('host');
             $table->string('path');
