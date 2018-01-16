@@ -1,7 +1,7 @@
-Laravel Keyword Rank
+Laravel Site Crawler
 =======================
 
-A Laravel package for getting keyword position from Google.  This package works with proxy service from seo-proxies dot com at the moment but the plan is to make it work with any proxy services.
+A Laravel package for crawling websites.  This is just a simple wrapper around the Goutte library where if you give it a URL, it wil crawl all the pages on that website, extract out title and meta description field and store them in database.  It also stores the entire HTML of each page for further analysis later on.
 
 Installation
 ------------
@@ -10,13 +10,13 @@ Add the following line to the `require` section of your Laravel webapp's `compos
 
 ```javascript
     "require": {
-        "seongbae/KeywordRank": "1.*"
+        "seongbae/sitecrawler": "1.*"
     }
 ```
 
 Run `composer update` to install the package.
 
-Or simpy run `composer require seongbae/keywordrank`
+Or simpy run `composer require seongbae/sitecrawler`
 
 This package uses Laravel 5.5 Package Auto-Discovery.
 
@@ -25,19 +25,19 @@ For previous versions of Laravel, you need to update `config/app.php` by adding 
 ```php
 'providers' => [
     // ...
-    seongbae\KeywordRank\KeywordRankServiceProvider::class,
+    seongbae\SiteCrawler\SiteCrawlerServiceProvider::class,
 ];
 ```
 
 Next, publish all package resources:
 
 ```bash
-    php artisan vendor:publish --provider="seongbae\KeywordRank\KeywordRankServiceProvider"
+    php artisan vendor:publish --provider="seongbae\SiteCrawler\SiteCrawlerServiceProvider"
 ```
 
 This will add to your project:
 
-    - migration - database tables for storing keywords and positions/rankings
+    - migration - database tables for crawled content
     - configuration - package configurations
 
 Remember to launch migration: 
@@ -46,41 +46,40 @@ Remember to launch migration:
     php artisan migrate
 ```
 
-Next step is to add cron task via Scheduler (`app\Console\Kernel.php`):
-
-```php
-    protected function schedule(Schedule $schedule)
-    {
-    	// ...
-        $schedule->command('keywords:fetch')->daily();
-    }
-```
 
 Usage
 ------
 
-1) Add website and keyword:
+1) Crawl the entire website:
 
 ```php	
-    $fetcher = new KeywordRankFetcher(Config::get('keywordrank'));
-    $website = $fetcher->addWebsite('www.lnidigital', 'LNI Digital Marketing', 1);  // last parameter is user id
-    $keyword = $fetcher->addKeyword($website->id, 'Ashburn Digital Marketing', 1); // last parameter is user id
+    $crawler = new SiteCrawler(Config::get('sitecrawler'));
+    $crawler->crawl('www.lnidigital.com');
 ```
 
-2) Get Google keyword position
+2) You can also run php artisan console command:
 
 ```php
-    $fetcher = new KeywordRankFetcher(Config::get('keywordrank'));
-    $position = $fetcher->getPosition('www.lnidigital.com','Ashburn Digital Marketing',true);
+    php artisan crawl www.lnidigital.com
 ```
 
-3) Get Google keyword position from console command
+You can add --nofollow as an optional parameter to crawl just a single page.
 
+When migration is run, the package creates a table called "crawled_pages".  It's fields are:
 ```php
-    php artisan fetch:rank www.lnidigital.com 'Ashburn Digital Marketing'
+    id, url, scheme, host, path, title, description, html, status, created_at, updated_at
 ```
 
-By default, above command uses cache if it's run more than once within 24 hours.  If you don't want to use cache, for testing purpose for example, you can add '--nocache' optional argument at the end.
+url - url of the page being crawled
+scheme - protocol - "http://"" or "https://""
+host - hostname of page being crawled.  i.e. "www.lnidigital.com"
+path - path i.e. "/about"
+title - title tag
+description - description meta tag
+html - entire HTML of page after being cleaned up by the Purifier library
+status - status of page crawled - 200, 404, 500, etc
+created_at - created time
+updated_at - updated time
 
 Changelog
 ---------
@@ -90,9 +89,9 @@ Changelog
 
 Roadmap
 -------
-- Make the package work with any other proxy services
+- Coming soon...
 
 Credits
 -------
 
-This package is created by Seong Bae.  The package utilizes free Google Rank Checker at http://google-rank-checker.squabbel.com/ and simple dom parser at https://github.com/sunra/php-simple-html-dom-parser.
+This package is created by Seong Bae. 
